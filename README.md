@@ -1,9 +1,16 @@
 # browser-terminal
-A session to a localhost terminal accessible from the browser.
+A session to a localhost terminal accessible from the browser
 
 ### Screenshot
 
 ![Screenshot](http://at1as.github.io/github_repo_assets/browser-terminal.jpg)
+
+### Usage
+
+* Use thin as your webserver
+* install dependencies in run.rb
+* `ruby run.rb`
+* navigate browser to 127.0.0.1:4567
 
 ### Limitations
 
