@@ -45,11 +45,10 @@ get '/command', provides: 'text/event-stream' do
     end
     return
   end
-  print "HI" 
+  
   PTY.spawn(last_command) do |std_out_err, std_in, pid|
     stream :keep_open do |out|
       begin
-        print "hey"
         while (line = std_out_err.gets.encode!('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '') rescue nil)
           html_line = ""
          
