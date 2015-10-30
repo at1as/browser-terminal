@@ -49,6 +49,10 @@ get '/command', provides: 'text/event-stream' do
   PTY.spawn(last_command) do |std_out_err, std_in, pid|
     stream :keep_open do |out|
       begin
+
+        # Need to send data every 20 seconds to keep stream open
+        EventMachine::PeriodicTimer.new(20) { out << "data: ##keepalive##\n\n" rescue nil }
+
         while (line = std_out_err.gets.encode!('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '') rescue nil)
           html_line = ""
          
@@ -155,8 +159,10 @@ __END__
       if (client.readyState == 4 && client.status == 201) {
         es = new EventSource('/command');
         es.onmessage = function(e) { 
-          document.getElementById('output').innerHTML += e.data + "\n";
-        };
+          if (e.data !== "##keepalive##") {
+            document.getElementById('output').innerHTML += e.data + "\n";
+          }
+        }
         es.onerror = function(e) {
           e = e || event, msg = '';
 
@@ -168,8 +174,8 @@ __END__
             case EventSource.CLOSED:
               console.log("Event source closed");
               return;
-          };
-        };
+          }
+        }
       } else {
         if(es.readyState !== 2) {
           try {
@@ -178,7 +184,7 @@ __END__
             // socket already closed
           }
           newline();
-        };
+        }
         return;
       }
     }
@@ -189,7 +195,7 @@ __END__
 
     rm_cursor();
     document.getElementById('output').innerHTML += '$ ' + data + '\n';
-  };
+  }
 
   function stop_command() {
     if(es) { 
@@ -212,14 +218,14 @@ __END__
     var t = document.getElementById('output').innerHTML;
     if (t.substring(t.length - 1, t.length) !== '>'){
       document.getElementById('output').innerHTML += '>';
-    };
+    }
   }
 
   function rm_cursor(){
     var t = document.getElementById('output').innerHTML;
     if (t.substring(t.length - 4, t.length) === '&gt;'){
       document.getElementById('output').innerHTML = t.substring(0, t.length - 4);
-    };
+    }
   }
 /*  
   window.onkeyup = function(e) {
@@ -241,7 +247,7 @@ __END__
       return false;
     }
     return true;
-  };
+  }
 */
 
 </script>
