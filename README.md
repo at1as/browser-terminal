@@ -1,6 +1,10 @@
 # browser-terminal
 A session to a localhost terminal accessible from the browser
 
+### Demo
+
+Try it on [Heroku](https://browserterminal.herokuapp.com/)
+
 ### Screenshot
 
 ![Screenshot](http://at1as.github.io/github_repo_assets/browser-terminal.jpg)
