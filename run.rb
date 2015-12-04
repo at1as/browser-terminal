@@ -1,12 +1,11 @@
 #encoding: UTF-8
 
 require 'sinatra'
-require "sinatra/streaming"
+require 'sinatra/streaming'
 require 'tilt/erubis'
 require 'thin'
 require 'pty'
 require 'strscan'
-require 'byebug'
 
 configure do
   $last_command = nil
