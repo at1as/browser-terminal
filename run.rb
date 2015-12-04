@@ -37,45 +37,48 @@ get '/command', provides: 'text/event-stream' do
  
   last_command = $last_command
   flagless_command = $flagless_command
-  
-  if `which #{flagless_command}`.empty?
+ 
+  begin  
+    PTY.spawn(last_command) do |std_out_err, std_in, pid|
+      stream :keep_open do |out|
+        begin
+
+          # Need to send data every 20 seconds to keep stream open
+          # n.b. Browsers on windows often timeout with less than 5 second interval
+          keep_alive = EventMachine::PeriodicTimer.new(20) do
+            out << "data: ##keepalive##\n\n" rescue nil 
+          end
+
+          while (line = std_out_err.gets.encode!('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '') rescue nil)
+            html_line = ""
+           
+            s = StringScanner.new(line)
+            while(!s.eos?)
+              if s.scan(/\e\[(3[0-7]|90|1)m/)
+                html_line << %{<span class="#{COLOR[s[1]]}">}
+              else
+                if s.scan(/\e\[(0m|m)/)
+                  html_line << %{</span>}
+                else
+                  html_line << safe_text(s.scan(/./m))
+                end
+              end
+            end
+            out << "data: #{html_line}\n\n"
+          end
+        rescue Errno::EIO
+        ensure
+          keep_alive.cancel rescue nil
+          out.close unless out.closed?
+          Process.waitpid2 pid rescue nil
+          puts "Finished executing '#{last_command}'\n"
+        end
+      end
+    end
+  rescue Errno::ENOENT # Command Not Found
     stream do |out|
       out << "data: Command not found\n\n"
       out.close unless out.closed?
-    end
-    return
-  end
-  
-  PTY.spawn(last_command) do |std_out_err, std_in, pid|
-    stream :keep_open do |out|
-      begin
-
-        # Need to send data every 20 seconds to keep stream open
-        EventMachine::PeriodicTimer.new(20) { out << "data: ##keepalive##\n\n" rescue nil }
-
-        while (line = std_out_err.gets.encode!('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '') rescue nil)
-          html_line = ""
-         
-          s = StringScanner.new(line)
-          while(!s.eos?)
-            if s.scan(/\e\[(3[0-7]|90|1)m/)
-              html_line << %{<span class="#{COLOR[s[1]]}">}
-            else
-              if s.scan(/\e\[(0m|m)/)
-                html_line << %{</span>}
-              else
-                html_line << safe_text(s.scan(/./m))
-              end
-            end
-          end
-          out << "data: #{html_line}\n"
-        end
-      rescue Errno::EIO
-      ensure
-        out.close unless out.closed?
-        Process.waitpid2 pid rescue nil
-        puts "Finished executing '#{last_command}'\n"
-      end
     end
   end
 end
@@ -142,7 +145,7 @@ __END__
   <input type="button" value="Stop" onclick="stop_command()" style="font-size:20px; border:none; background-color:#428bca; padding-top:8px; padding-bottom:8px; border-radius:3px; color:white">
   <input type="button" value="Clear" onclick="clear_output()" style="font-size:20px; border:none; padding-top:8px; padding-bottom:8px; border-radius:3px; color:white; background-color:black">
   
-  <input type="size" id="size" placeholder="Font Size" style="padding:8px; font-size:20px; max-width:105px; width:100%; margin-left:10px"></input>
+  <input type="size" id="size" placeholder="Font Size" style="padding:8px; font-size:18px; max-width:105px; width:100%; margin-left:10px"></input>
   <input type="button" value="Set" onclick="change_font_size()" style="font-size:20px; border:none; padding-top:8px; padding-bottom:8px; border-radius:3px; color:white; background-color:black">
 </div>
 
@@ -158,6 +161,8 @@ __END__
     client.onreadystatechange = function() {
       if (client.readyState == 4 && client.status == 201) {
         es = new EventSource('/command');
+        rm_cursor();
+        
         es.onmessage = function(e) { 
           if (e.data !== "##keepalive##") {
             document.getElementById('output').innerHTML += e.data + "\n";
@@ -167,7 +172,7 @@ __END__
           e = e || event, msg = '';
 
           switch( e.target.readyState ){
-            case EventSource.CONNECTING:
+            case EventSource.CONNECTING: // Stream Closed
               newline();
               es.close();
               return;
@@ -175,6 +180,7 @@ __END__
               console.log("Event source closed");
               return;
           }
+          //rm_cursor();
         }
       } else {
         if(es.readyState !== 2) {
@@ -194,7 +200,7 @@ __END__
     client.send(data);
 
     rm_cursor();
-    document.getElementById('output').innerHTML += '$ ' + data + '\n';
+    document.getElementById('output').innerHTML += '<span style="color:red">\n$</span> ' + data + '\n';
   }
 
   function stop_command() {
@@ -215,6 +221,7 @@ __END__
   }
 
   function newline(){
+    // Append '>' to new line to indicate command execution is complete
     var t = document.getElementById('output').innerHTML;
     if (t.substring(t.length - 1, t.length) !== '>'){
       document.getElementById('output').innerHTML += '>';
@@ -222,6 +229,7 @@ __END__
   }
 
   function rm_cursor(){
+    // Remove '>' cursor from line
     var t = document.getElementById('output').innerHTML;
     if (t.substring(t.length - 4, t.length) === '&gt;'){
       document.getElementById('output').innerHTML = t.substring(0, t.length - 4);
