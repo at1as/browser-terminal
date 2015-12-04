@@ -3,6 +3,7 @@ GEM
   specs:
     backports (3.6.7)
     daemons (1.2.3)
+    erubis (2.7.0)
     eventmachine (1.0.8)
     multi_json (1.11.2)
     rack (1.6.4)
@@ -31,6 +32,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  erubis (~> 2.7.0)
   sinatra (~> 1.4)
   sinatra-contrib (~> 1.4)
   thin (~> 1.5)
