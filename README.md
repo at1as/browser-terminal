@@ -7,7 +7,7 @@ Try it on [Heroku](https://browserterminal.herokuapp.com/)
 
 ### Screenshot
 
-![Screenshot](http://at1as.github.io/github_repo_assets/browser-terminal.jpg)
+![Screenshot](http://at1as.github.io/github_repo_assets/brower-terminal-2.png)
 
 ### Usage
 
