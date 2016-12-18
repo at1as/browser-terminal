@@ -234,28 +234,16 @@ __END__
       document.getElementById('output').innerHTML = t.substring(0, t.length - 4);
     }
   }
-/*  
+
   window.onkeyup = function(e) {
     // Listen for 'Enter' keypress is cursor is in command field and send request
     var key = e.keyCode ? e.keyCode : e.which;
     var cmd_field = document.getElementById('command');
-    console.log("H");
 
-    if (key == 13) { #&& cmd_field === document.activeElement) {
-      console.log("HELOO");
+    if (key == 13 && cmd_field === document.activeElement && cmd_field.value !== "") {
       set_command(); 
     }
   }
-
-  function (event) {
-    if (event.which == 13 || event.keyCode == 13) {
-      //code to execute here
-      console.log("AB");
-      return false;
-    }
-    return true;
-  }
-*/
 
 </script>
 
