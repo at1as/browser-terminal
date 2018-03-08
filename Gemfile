@@ -1,7 +1,9 @@
 source 'https://rubygems.org'
 
-gem 'sinatra', '~> 1.4'
-gem 'sinatra-contrib', '~> 1.4'
+ruby ENV['CUSTOM_RUBY_VERSION'] || '2.5.0'
+
+gem 'sinatra', '~> 2.0.1'
+gem 'sinatra-contrib', '~> 2.0.1'
 gem 'erubis', '~> 2.7.0'
-gem 'tilt', '~> 2.0'
-gem 'thin', '~> 1.5'
+gem 'tilt', '~> 2.0.8'
+gem 'thin', '~> 1.7.2'

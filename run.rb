@@ -157,6 +157,8 @@ __END__
     var data = document.getElementById('command').value;
     var client = new XMLHttpRequest();
     
+    clear_input();
+    
     client.onreadystatechange = function() {
       if (client.readyState == 4 && client.status == 201) {
         es = new EventSource('/command');
@@ -165,6 +167,7 @@ __END__
         es.onmessage = function(e) { 
           if (e.data !== "##keepalive##") {
             document.getElementById('output').innerHTML += e.data + "\n";
+            window.scrollTo(0, document.body.scrollHeight);
           }
         }
         es.onerror = function(e) {
@@ -200,6 +203,8 @@ __END__
 
     rm_cursor();
     document.getElementById('output').innerHTML += '<span style="color:red">\n$</span> ' + data + '\n';
+
+    window.scrollTo(0, document.body.scrollHeight);
   }
 
   function stop_command() {
@@ -211,7 +216,11 @@ __END__
   }
 
   function clear_output() {
-    document.getElementById('output').innerHTML = ""
+    document.getElementById('output').innerHTML = "";
+  }
+  
+  function clear_input() {
+    document.getElementById('command').value = ""
   }
 
   function change_font_size() {
@@ -225,6 +234,7 @@ __END__
     if (t.substring(t.length - 1, t.length) !== '>'){
       document.getElementById('output').innerHTML += '>';
     }
+    window.scrollTo(0, document.body.scrollHeight);
   }
 
   function rm_cursor(){
